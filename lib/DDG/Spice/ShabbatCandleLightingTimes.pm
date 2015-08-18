@@ -24,11 +24,13 @@ attribution github => ["bdjnk", "Michael Plotke"],
             web => "michael.plotke.me";
 
 # API endpoint - https://duck.co/duckduckhack/spice_attributes#spice-codetocode
-spice to => 'http://www.hebcal.com/shabbat/?cfg=json$1';
+spice to => 'http://www.hebcal.com/shabbat/?cfg=json&geo=pos&$1';
 spice wrap_jsonp_callback => 1;
 
 # Triggers - https://duck.co/duckduckhack/spice_triggers
 triggers any => "candle lighting", "shabbat", "shabbos";
+
+my @locs = qw (city region_name country_name );
 
 # Handle statement
 handle remainder => sub {
@@ -36,9 +38,16 @@ handle remainder => sub {
     # optional - regex guard
     # return unless qr/^\w+/;
 
-    return unless $_;    # Guard against "no answer"
+#    return unless $_;    # Guard against "no answer"
+#
+#    return $_;
 
-    return $_;
+    return if $_;
+    
+    my $location = join("&", "tzid=", $loc->time_zone, "latitude=", $loc->latitude, "longitude=", $loc->longitude);
+
+    my $loc_str = join " ", map { $loc->{$_} } @locs;
+    return $loc_str, 'current', {is_cached => 0};
 };
 
 1;
